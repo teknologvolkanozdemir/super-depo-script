@@ -1,0 +1,9 @@
+# Geçici ve yerel veri dosyaları
+data/*.sqlite
+data/*.db
+data/*.log
+
+# Sistem ve editör dosyaları
+.DS_Store
+Thumbs.db
+*.tmp
