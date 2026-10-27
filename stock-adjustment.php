@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ]);
 
                             $db->commit();
+                            check_and_notify_low_stock($product_id);
                             log_activity('stock_adjustment', "Sayım düzeltmesi: {$prod['name']} ({$prev_stock} -> {$new_stock})");
                             set_flash('success', "'{$prod['name']}' stoğu {$new_stock} {$prod['unit']} olarak düzeltildi.");
                             header('Location: stock-movements.php');

@@ -82,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 $db->commit();
+                check_and_notify_low_stock($product_id);
                 log_activity('stock_out', "Stok Çıkışı: {$prod['name']} (-{$quantity} {$prod['unit']}). Belge: {$reference_no}");
                 set_flash('success', "'{$prod['name']}' ürününden {$quantity} {$prod['unit']} çıkış başarıyla tamamlandı. Kalan Stok: {$new_stock} {$prod['unit']}.");
                 header('Location: stock-movements.php');

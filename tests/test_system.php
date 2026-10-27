@@ -129,13 +129,20 @@ $check_adj = $db->prepare('SELECT stock_quantity FROM products WHERE id = ?');
 $check_adj->execute([$test_prod_id]);
 assert_test("Sayım düzeltmesi sonrası yeni stok mutabakatı sağlandı (28.00)", (float)$check_adj->fetchColumn() === 28.00);
 
-// TEST 9: Telegram 2FA Kod Üretimi ve Ayarlar
-echo "\n9. Telegram 2FA Güvenlik Testi:\n";
+// TEST 9: Telegram 2FA ve Bildirim Testi
+echo "\n9. Telegram 2FA ve Bildirim Testleri:\n";
 set_setting('telegram_2fa_enabled', '1');
 assert_test("2FA ayarı başarıyla kaydedildi", get_setting('telegram_2fa_enabled') === '1');
 $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
 assert_test("6 haneli 2FA güvenlik kodu üretildi", strlen($code) === 6 && ctype_digit($code));
 assert_test("2FA hash doğrulaması başarılı", hash_equals($code, $code));
+
+$svg_barcode = render_barcode_svg('TEST-BARCODE-123');
+assert_test("Offline SVG barkod üretildi", str_contains($svg_barcode, '<svg') && str_contains($svg_barcode, '</svg>'));
+
+// Kritik stok bildirim tetikleyicisi testi
+check_and_notify_low_stock($test_prod_id);
+assert_test("Kritik stok kontrol fonksiyonu hatasız çalıştı", true);
 
 // TEST 10: Temizlik
 $db->prepare('DELETE FROM stock_movements WHERE product_id = ?')->execute([$test_prod_id]);

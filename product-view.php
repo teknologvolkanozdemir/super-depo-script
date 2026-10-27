@@ -47,12 +47,10 @@ $sale_value = (float)$product['stock_quantity'] * (float)$product['sale_price'];
     <h2 style="font-size: 16pt; margin-bottom: 5px;"><?= e(APP_NAME) ?></h2>
     <div style="font-size: 18pt; font-weight: bold; margin: 10px 0;"><?= e($product['name']) ?></div>
     <div style="font-size: 12pt; margin: 5px 0;"><strong>SKU:</strong> <?= e($product['sku']) ?></div>
-    <?php if ($product['barcode']): ?>
-        <div style="font-family: monospace; font-size: 20pt; letter-spacing: 4px; padding: 10px 0; border: 1px solid #000; margin: 10px 0;">
-            ||| | |||| | ||| |||| |<br>
-            <?= e($product['barcode']) ?>
-        </div>
-    <?php endif; ?>
+    <div style="margin: 10px 0; color: #000;">
+        <?= render_barcode_svg($product['barcode'] ?: $product['sku'], 45) ?>
+        <div style="font-family: monospace; font-size: 11pt; margin-top: 3px;"><?= e($product['barcode'] ?: $product['sku']) ?></div>
+    </div>
     <div style="font-size: 14pt; margin-top: 5px;">
         <strong>Konum:</strong> <?= e($product['warehouse_name']) ?> - <?= e($product['location_name'] ?: 'Tanımsız') ?>
     </div>
@@ -64,7 +62,12 @@ $sale_value = (float)$product['stock_quantity'] * (float)$product['sale_price'];
 <div class="page-header no-print">
     <div>
         <h1 class="page-title"><?= e($product['name']) ?></h1>
-        <p class="page-subtitle">SKU: <code><?= e($product['sku']) ?></code> | Barkod: <code><?= e($product['barcode'] ?: 'Yok') ?></code></p>
+        <p class="page-subtitle">
+            SKU: <code><?= e($product['sku']) ?></code> | Barkod: <code><?= e($product['barcode'] ?: 'Yok') ?></code>
+        </p>
+        <div style="margin-top: 0.5rem; display: inline-block; padding: 6px 12px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <?= render_barcode_svg($product['barcode'] ?: $product['sku'], 35) ?>
+        </div>
     </div>
     <div class="page-actions">
         <button type="button" onclick="window.print()" class="btn btn-outline" title="Depo Raf / Barkod Etiketini Yazdır">

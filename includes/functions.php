@@ -135,6 +135,35 @@ function send_telegram_message(string $bot_token, string $chat_id, string $text)
     }
 }
 
+// Kritik Stok Telegram Bildirimi
+function check_and_notify_low_stock(int $product_id): void {
+    try {
+        $db = get_db();
+        $stmt = $db->prepare('SELECT p.*, l.name as location_name FROM products p LEFT JOIN locations l ON p.location_id = l.id WHERE p.id = ?');
+        $stmt->execute([$product_id]);
+        $p = $stmt->fetch();
+        if ($p && (float)$p['stock_quantity'] <= (float)$p['min_stock_level']) {
+            $bot_token = get_setting('telegram_bot_token', '');
+            $chat_id = get_setting('telegram_chat_id', '');
+            $notify_enabled = get_setting('low_stock_notification', '1') === '1';
+
+            if (!empty($bot_token) && !empty($chat_id) && $notify_enabled) {
+                $status = ((float)$p['stock_quantity'] <= 0) ? '🚨 TÜKENDİ (0 STOK)' : '⚠️ KRİTİK SEVİYE';
+                $msg = "<b>" . APP_NAME . " - {$status}</b>\n\n"
+                     . "Ürün: <b>" . htmlspecialchars($p['name']) . "</b>\n"
+                     . "SKU: <code>" . htmlspecialchars($p['sku']) . "</code>\n"
+                     . "Mevcut Stok: <b>" . format_number($p['stock_quantity']) . " " . htmlspecialchars($p['unit']) . "</b>\n"
+                     . "Kritik Eşik: " . format_number($p['min_stock_level']) . " " . htmlspecialchars($p['unit']) . "\n"
+                     . "Raf/Konum: " . htmlspecialchars($p['location_name'] ?: 'Tanımsız') . "\n"
+                     . "Tarih: " . date('d.m.Y H:i');
+                send_telegram_message($bot_token, $chat_id, $msg);
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Kritik stok bildirimi hatası: " . $e->getMessage());
+    }
+}
+
 // Ayar Güncelleme
 function set_setting(string $key, string $value): bool {
     try {
@@ -157,6 +186,44 @@ function set_setting(string $key, string $value): bool {
 // Otomatik Benzersiz SKU / Ürün Kodu Üretici
 function generate_sku(): string {
     return 'PRD-' . date('Ym') . '-' . strtoupper(bin2hex(random_bytes(2)));
+}
+
+// Barkod İçin Offline SVG Üretici
+function render_barcode_svg(string $text, int $height = 50): string {
+    if (empty($text)) return '';
+    $hash = md5($text);
+    $bars = '';
+    $x = 10;
+    // Başlangıç çizgileri
+    $bars .= '<rect x="' . $x . '" y="0" width="3" height="' . $height . '" fill="currentColor"/>';
+    $x += 6;
+    $bars .= '<rect x="' . $x . '" y="0" width="2" height="' . $height . '" fill="currentColor"/>';
+    $x += 5;
+
+    for ($i = 0; $i < strlen($text); $i++) {
+        $charVal = ord($text[$i]);
+        $w1 = ($charVal % 3) + 1;
+        $w2 = (($charVal >> 1) % 3) + 1;
+        $w3 = (($charVal >> 2) % 2) + 1;
+        
+        $bars .= '<rect x="' . $x . '" y="0" width="' . $w1 . '" height="' . $height . '" fill="currentColor"/>';
+        $x += $w1 + 2;
+        $bars .= '<rect x="' . $x . '" y="0" width="' . $w2 . '" height="' . $height . '" fill="currentColor"/>';
+        $x += $w2 + 3;
+        $bars .= '<rect x="' . $x . '" y="0" width="' . $w3 . '" height="' . $height . '" fill="currentColor"/>';
+        $x += $w3 + 2;
+    }
+
+    // Bitiş çizgileri
+    $bars .= '<rect x="' . $x . '" y="0" width="2" height="' . $height . '" fill="currentColor"/>';
+    $x += 4;
+    $bars .= '<rect x="' . $x . '" y="0" width="3" height="' . $height . '" fill="currentColor"/>';
+    $x += 10;
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $x . '" height="' . $height . '" viewBox="0 0 ' . $x . ' ' . $height . '" role="img" aria-label="Barkod: ' . e($text) . '">';
+    $svg .= $bars;
+    $svg .= '</svg>';
+    return $svg;
 }
 
 // Erişilebilir Sayfalama HTML Bileşeni

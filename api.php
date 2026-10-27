@@ -101,6 +101,7 @@ if ($action === 'wc_webhook') {
                 ]);
 
                 $updated_count++;
+                check_and_notify_low_stock((int)$prod['id']);
             } else {
                 $errors[] = "SKU ({$sku}) depoda bulunamadı.";
             }

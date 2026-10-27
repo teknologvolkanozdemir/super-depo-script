@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $telegram_bot_token = trim($_POST['telegram_bot_token'] ?? '');
             $telegram_chat_id = trim($_POST['telegram_chat_id'] ?? '');
             $telegram_2fa_enabled = isset($_POST['telegram_2fa_enabled']) ? '1' : '0';
+            $low_stock_notification = isset($_POST['low_stock_notification']) ? '1' : '0';
             $wc_store_url = trim($_POST['wc_store_url'] ?? '');
             $wc_consumer_key = trim($_POST['wc_consumer_key'] ?? '');
             $wc_consumer_secret = trim($_POST['wc_consumer_secret'] ?? '');
@@ -50,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_setting('telegram_bot_token', $telegram_bot_token);
             set_setting('telegram_chat_id', $telegram_chat_id);
             set_setting('telegram_2fa_enabled', $telegram_2fa_enabled);
+            set_setting('low_stock_notification', $low_stock_notification);
             set_setting('wc_store_url', $wc_store_url);
             set_setting('wc_consumer_key', $wc_consumer_key);
             set_setting('wc_consumer_secret', $wc_consumer_secret);
@@ -105,6 +107,14 @@ $wc_consumer_secret = get_setting('wc_consumer_secret', '');
                     <span>Telegram 2FA İki Adımlı Doğrulamayı Etkinleştir</span>
                 </label>
                 <div class="form-hint">İşaretlendiğinde, doğru şifre girildikten sonra Telegram'a doğrulama kodu gönderilir.</div>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; cursor: pointer;">
+                    <input type="checkbox" name="low_stock_notification" value="1" <?= get_setting('low_stock_notification', '1') === '1' ? 'checked' : '' ?>>
+                    <span>Kritik ve Biten Stok Bildirimlerini Telegram'a Gönder</span>
+                </label>
+                <div class="form-hint">Ürün stoğu kritik eşiğin altına indiğinde anlık uyarı mesajı iletilir.</div>
             </div>
 
             <div class="form-group">
